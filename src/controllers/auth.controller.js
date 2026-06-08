@@ -61,6 +61,9 @@ async function userLoginController(req, res) {
       message: "Email or Password is INVALID",
     });
   }
+  if (user.systemUser === true) {
+    console.log("system user logged in");
+  }
 
   const isValidPassword = await user.comparedPassword(password);
 

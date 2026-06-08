@@ -1,14 +1,17 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 function connectToDB() {
-    mongoose.connect(process.env.MONGO_URI)
-        .then(() => {
-        console.log('Connected to MongoDB');
-        })
-    .catch((err) => {
-        console.error('Error connecting to MongoDB:', err);
-        process.exit(1);
-    });
+    const uri = process.env.MONGO_URI;
+  if (!uri) {
+    return Promise.reject(
+      new Error("MONGO_URI environment variable is not set."),
+    );
+  }
+
+  return mongoose.connect(uri, {
+    serverSelectionTimeoutMS: 10000,
+    family: 4,
+  });
 }
 
 module.exports = connectToDB;
