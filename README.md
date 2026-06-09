@@ -2,7 +2,9 @@
 
 A backend API for a banking ledger system built with Node.js, Express, and MongoDB. It handles user authentication, bank accounts, and money transfers using a proper double-entry bookkeeping model — meaning every transaction creates both a debit and a credit ledger entry, so the books always balance.
 
-I built this to understand how financial systems actually handle money movement at the data layer. Turns out, storing a single `balance` field on an account is asking for trouble — ledger-based balance derivation is the right way to do it.
+Every rupee amount is stored as integer paise internally (1 rupee = 100 paise). This avoids the IEEE 754 floating-point problem where `0.1 + 0.2 !== 0.3` — a real issue that compounds over time in financial systems.
+
+Auth uses a dual-token system: short-lived 15-minute access tokens paired with 7-day refresh tokens. If your access token expires, you hit `/auth/refresh` — no re-login needed. The refresh token is stored as a SHA-256 hash in MongoDB, so even a DB breach doesn't hand over usable tokens.
 
 ---
 
@@ -10,37 +12,46 @@ I built this to understand how financial systems actually handle money movement 
 
 ```
 bank-ledger/
-├── server.js                         # Entry point — boots the app
+├── server.js                          # Entry point — boots the app, process guards
+├── jest.config.js                     # Jest test configuration
 ├── src/
-│   ├── app.js                        # Express setup, middleware, routes
+│   ├── app.js                         # Express, middleware stack, /api/v1/ routes
 │   ├── config/
-│   │   ├── db.js                     # MongoDB connection
-│   │   └── validateEnv.js            # Fail-fast env variable check
+│   │   ├── db.js                      # MongoDB connection
+│   │   └── validateEnv.js             # Fail-fast env variable validation
 │   ├── controllers/
-│   │   ├── auth.controller.js        # Register, login, logout
-│   │   ├── account.controller.js     # Create & fetch accounts
-│   │   └── transaction.controller.js # Transfer funds, initial funding
+│   │   ├── auth.controller.js         # Register, login, refresh, logout
+│   │   ├── account.controller.js      # Create & fetch accounts, balance
+│   │   └── transaction.controller.js  # Transfer, history, detail, initial-funds
 │   ├── middleware/
-│   │   ├── auth.middleware.js        # JWT verification + role guard
-│   │   ├── validate.middleware.js    # Input validation (express-validator)
-│   │   ├── errorHandler.middleware.js# Central error handler
-│   │   └── requestId.middleware.js   # X-Request-ID correlation headers
+│   │   ├── auth.middleware.js         # JWT verification + role guard
+│   │   ├── validate.middleware.js     # Input validation + rupees→paise conversion
+│   │   ├── errorHandler.middleware.js # Central error handler
+│   │   └── requestId.middleware.js    # X-Request-ID correlation headers
 │   ├── models/
-│   │   ├── user.model.js             # User schema + bcrypt hooks
-│   │   ├── account.model.js          # Bank account + getBalance()
-│   │   ├── ledger.model.js           # Immutable ledger entries
-│   │   ├── transaction.model.js      # Transaction records
-│   │   └── blackList.model.js        # JWT token blacklist (TTL indexed)
+│   │   ├── user.model.js              # User schema + bcrypt hooks
+│   │   ├── account.model.js           # Bank account + getBalance() aggregation
+│   │   ├── ledger.model.js            # Immutable DEBIT/CREDIT entries (paise)
+│   │   ├── transaction.model.js       # Transaction records (paise amounts)
+│   │   ├── refreshToken.model.js      # Hashed refresh tokens with 7d TTL
+│   │   ├── blackList.model.js         # JWT blacklist (TTL-indexed, 15min)
+│   │   └── auditLog.model.js          # Immutable audit trail (90d TTL)
 │   ├── routes/
 │   │   ├── auth.routes.js
 │   │   ├── accounts.routes.js
 │   │   └── transaction.routes.js
 │   ├── services/
-│   │   └── email.service.js          # Nodemailer (Google OAuth2)
+│   │   └── email.service.js           # Nodemailer with Google OAuth2
 │   └── utils/
-│       ├── asyncHandler.js           # Wraps async controllers for error propagation
-│       └── logger.js                 # Winston structured logger
-└── .env.example                      # Copy this to .env and fill in your values
+│       ├── asyncHandler.js            # Wraps async controllers for error propagation
+│       ├── audit.js                   # Fire-and-forget audit log helper
+│       ├── currency.js                # rupeesToPaise / paiseToRupees / formatRupees
+│       └── logger.js                  # Winston structured logger
+└── tests/
+    └── unit/
+        ├── asyncHandler.test.js       # 5 tests
+        ├── currency.test.js           # 12 tests (including IEEE 754 edge cases)
+        └── validateEnv.test.js        # 7 tests
 ```
 
 ---
@@ -49,13 +60,14 @@ bank-ledger/
 
 - **Runtime**: Node.js
 - **Framework**: Express v5
-- **Database**: MongoDB via Mongoose (requires a replica set for transactions)
-- **Auth**: JWT (stored in httpOnly cookies)
-- **Password hashing**: bcrypt
+- **Database**: MongoDB via Mongoose (requires replica set for ACID transactions)
+- **Auth**: Dual-token JWT — 15min access token + 7d refresh token (httpOnly cookies)
+- **Password hashing**: bcrypt (10 rounds)
 - **Email**: Nodemailer with Google OAuth2
-- **Logging**: Winston + Morgan
+- **Logging**: Winston (structured JSON in prod) + Morgan (HTTP access logs)
 - **Security**: Helmet, CORS, express-rate-limit
 - **Validation**: express-validator
+- **Testing**: Jest + supertest
 
 ---
 
@@ -65,7 +77,7 @@ bank-ledger/
 
 - Node.js 18+
 - A MongoDB instance with replica set enabled (needed for ACID transactions). MongoDB Atlas free tier works perfectly.
-- A Gmail account set up with OAuth2 for emails (or you can skip email and it'll just log a warning)
+- Gmail OAuth2 credentials for emails (optional — server works fine without it)
 
 ### 1. Clone and install
 
@@ -81,21 +93,12 @@ npm install
 cp .env.example .env
 ```
 
-Then open `.env` and fill in your values:
-
-```env
-MONGO_URI=mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/banking-ledger
-JWT_SECRET=<generate with: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))">
-PORT=3000
-NODE_ENV=development
-ALLOWED_ORIGIN=http://localhost:3000
-EMAIL_USER=your@gmail.com
-CLIENT_ID=...
-CLIENT_SECRET=...
-REFRESH_TOKEN=...
+Then fill in your values. Generate secrets with:
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
 
-> **Note on JWT_SECRET**: The server will refuse to start if this is shorter than 32 characters. Use the `crypto` command above to generate a proper one.
+> **Note**: The server refuses to start if `JWT_SECRET` or `REFRESH_TOKEN_SECRET` are shorter than 32 characters. You need two separate secrets — one for each token type.
 
 ### 3. Run in development
 
@@ -103,16 +106,14 @@ REFRESH_TOKEN=...
 npm run dev
 ```
 
-You should see something like:
+### 4. Run tests
 
-```
-[22:45:31] info: Environment variables validated successfully.
-[22:45:32] info: Connected to MongoDB
-[22:45:32] info: Server is running on port 3000  {"env":"development","port":"3000"}
-[22:45:32] info: Email server is ready to send messages
+```bash
+npm test                # run once with coverage
+npm run test:watch      # watch mode during development
 ```
 
-### 4. Check it's alive
+### 5. Check it's alive
 
 ```
 GET http://localhost:3000/health
@@ -122,17 +123,21 @@ GET http://localhost:3000/health
 
 ## API Reference
 
-> All protected routes require either:
+> **Base URL**: `http://localhost:3000/api/v1`
+>
+> **Auth**: Protected routes require either:
 > - A cookie named `token` (set automatically on login/register), or
-> - An `Authorization: Bearer <token>` header
+> - `Authorization: Bearer <token>` header
+>
+> **Amount fields**: Send amounts in **rupees** (e.g. `100.50`). The API stores them as paise internally and returns rupees in all responses. Max 2 decimal places accepted.
 
 ---
 
 ### Auth
 
-#### Register a new user
+#### Register
 ```
-POST /api/auth/register
+POST /api/v1/auth/register
 ```
 **Body:**
 ```json
@@ -146,43 +151,57 @@ POST /api/auth/register
 ```json
 {
   "user": { "_id": "...", "email": "harry@hogwarts.com", "name": "Harry Potter" },
-  "token": "<jwt>"
+  "token": "<15min-access-jwt>"
 }
 ```
-Sends a welcome email in the background. If the email fails, the registration still succeeds.
+Also sets two httpOnly cookies: `token` (15min) and `refreshToken` (7 days).
 
-**Validation rules**: email must be valid, name 2–100 chars, password min 6 chars and must contain at least one number.
+**Validation**: email must be valid, name 2–100 chars, password min 6 chars with at least one number.
 
 ---
 
 #### Login
 ```
-POST /api/auth/login
+POST /api/v1/auth/login
 ```
 **Body:**
 ```json
-{
-  "email": "harry@hogwarts.com",
-  "password": "Expelliarmus1"
-}
+{ "email": "harry@hogwarts.com", "password": "Expelliarmus1" }
 ```
 **Response `200`:**
 ```json
 {
   "user": { "_id": "...", "email": "harry@hogwarts.com", "name": "Harry Potter" },
-  "token": "<jwt>"
+  "token": "<15min-access-jwt>"
 }
 ```
+Sets both `token` and `refreshToken` cookies.
 
-> The API intentionally returns the same error message for both "user not found" and "wrong password" — this is by design to prevent user enumeration attacks.
+> Same error message for wrong email vs wrong password — intentional, prevents user enumeration.
+
+---
+
+#### Refresh Access Token
+```
+POST /api/v1/auth/refresh
+```
+No body needed. Reads the `refreshToken` cookie automatically.
+
+**Response `200`:**
+```json
+{ "token": "<new-15min-access-jwt>" }
+```
+Also sets a fresh `token` cookie. Call this when you get a 401 — no re-login needed.
 
 ---
 
 #### Logout
 ```
-POST /api/auth/logout
+POST /api/v1/auth/logout
 ```
-🔒 No body needed. Blacklists the current token so it can't be reused. The blacklist entry auto-deletes after 3 days (matching the JWT expiry).
+🔒 No body needed.
+
+Blacklists the current access token + deletes the refresh token from DB + clears both cookies.
 
 **Response `200`:**
 ```json
@@ -195,9 +214,9 @@ POST /api/auth/logout
 
 #### Create a bank account
 ```
-POST /api/accounts
+POST /api/v1/accounts
 ```
-🔒 Protected. Creates a new INR account for the logged-in user. A user can have multiple accounts.
+🔒 Protected. Creates a new INR account. A user can have multiple accounts.
 
 **Response `201`:**
 ```json
@@ -216,12 +235,11 @@ POST /api/accounts
 
 #### List your accounts
 ```
-GET /api/accounts?page=1&limit=20
+GET /api/v1/accounts?page=1&limit=20
 ```
 🔒 Protected.
 
-**Query params** (optional):
-| Param | Default | Max |
+| Query param | Default | Max |
 |---|---|---|
 | `page` | 1 | — |
 | `limit` | 20 | 50 |
@@ -238,27 +256,26 @@ GET /api/accounts?page=1&limit=20
 
 #### Get account balance
 ```
-GET /api/accounts/balance/:accountId
+GET /api/v1/accounts/balance/:accountId
 ```
-🔒 Protected. Balance is derived live from the ledger (sum of CREDITs minus DEBITs) — not from a stored field. This means it's always accurate even if something went wrong mid-transaction.
+🔒 Protected. Balance is derived live from the ledger (sum of CREDITs minus DEBITs in paise, returned in rupees). Always accurate.
 
 **Response `200`:**
 ```json
 {
   "accountId": "...",
-  "balance": 5000
+  "balance": 100.50,
+  "currency": "INR"
 }
 ```
-
-Returns `404` if the account doesn't belong to the logged-in user.
 
 ---
 
 ### Transactions
 
-#### Transfer money between accounts
+#### Transfer money
 ```
-POST /api/transaction
+POST /api/v1/transaction
 ```
 🔒 Protected.
 
@@ -267,11 +284,10 @@ POST /api/transaction
 {
   "fromAccount": "<accountId>",
   "toAccount": "<accountId>",
-  "amount": 1000,
-  "idempotencyKey": "unique-key-per-transfer-attempt"
+  "amount": 100.50,
+  "idempotencyKey": "uuid-or-unique-string-per-attempt"
 }
 ```
-
 **Response `201`:**
 ```json
 {
@@ -280,40 +296,70 @@ POST /api/transaction
     "_id": "...",
     "fromAccount": "...",
     "toAccount": "...",
-    "amount": 1000,
+    "amount": 100.50,
     "status": "COMPLETED",
-    "idempotencyKey": "unique-key-per-transfer-attempt"
+    "idempotencyKey": "..."
   }
 }
 ```
 
-**About `idempotencyKey`**: This is the client's responsibility to generate — use a UUID per transfer attempt. If the same key is submitted twice, the second request returns the original result instead of executing again. This prevents double-charges if a network timeout causes the client to retry.
+**About `idempotencyKey`**: Generate a UUID per transfer attempt. If the same key is submitted twice (e.g. network retry), the second request returns the original result — no double-charge.
 
-**What happens under the hood:**
-1. Validates the request
-2. Checks the idempotency key (returns early if already processed)
-3. Verifies both accounts are `ACTIVE`
-4. Derives sender's real-time balance from the ledger
-5. Checks sufficient funds
-6. Opens a MongoDB session and starts a transaction
-7. Creates `PENDING` transaction record
-8. Creates DEBIT ledger entry for sender
-9. Creates CREDIT ledger entry for receiver
-10. Marks transaction `COMPLETED`
-11. Commits the session
-12. Sends email notification (fire-and-forget)
+**Validation**: both IDs must be valid ObjectIds, `amount` > 0, max 2 decimal places, `fromAccount ≠ toAccount`.
 
-If anything between steps 6–11 fails, the session is aborted, and the transaction is marked `FAILED`.
+---
 
-**Validation rules**: both IDs must be valid ObjectIds, amount must be > 0, fromAccount and toAccount can't be the same, idempotencyKey must be 8–128 characters.
+#### Transaction history
+```
+GET /api/v1/transaction?page=1&limit=20&status=COMPLETED
+```
+🔒 Protected. Returns all transactions where any of your accounts was sender or receiver.
+
+| Query param | Default | Options |
+|---|---|---|
+| `page` | 1 | — |
+| `limit` | 20 (max 50) | — |
+| `status` | all | `PENDING`, `COMPLETED`, `FAILED`, `REVERSED` |
+
+**Response `200`:**
+```json
+{
+  "transactions": [
+    {
+      "_id": "...",
+      "fromAccount": { "_id": "...", "currency": "INR", "status": "ACTIVE" },
+      "toAccount": { "_id": "...", "currency": "INR", "status": "ACTIVE" },
+      "amount": 100.50,
+      "status": "COMPLETED",
+      "createdAt": "..."
+    }
+  ],
+  "pagination": { "page": 1, "limit": 20, "total": 5, "pages": 1 }
+}
+```
+
+---
+
+#### Single transaction
+```
+GET /api/v1/transaction/:id
+```
+🔒 Protected. Returns `404` if the transaction doesn't involve your account.
+
+**Response `200`:**
+```json
+{
+  "transaction": { ... }
+}
+```
 
 ---
 
 #### Fund an account (system user only)
 ```
-POST /api/transaction/system/initial-funds
+POST /api/v1/transaction/system/initial-funds
 ```
-🔒 Requires a `systemUser` account. Used to inject initial funds into user accounts (like an admin top-up).
+🔒 Requires `systemUser` flag. Admin top-up endpoint.
 
 **Body:**
 ```json
@@ -324,44 +370,27 @@ POST /api/transaction/system/initial-funds
 }
 ```
 
-**Response `201`:**
-```json
-{
-  "message": "Initial funds transaction completed successfully",
-  "transaction": { ... }
-}
-```
-
 ---
 
 ### Health Check
 
-#### Server health
 ```
 GET /health
 ```
-No auth required. Used by load balancers and uptime monitors.
+No auth. Returns server uptime. Used by load balancers and Kubernetes liveness probes.
 
 **Response `200`:**
 ```json
-{
-  "status": "ok",
-  "timestamp": "2026-06-09T17:19:00.000Z",
-  "uptime": 342.5
-}
+{ "status": "ok", "timestamp": "2026-06-09T17:19:00.000Z", "uptime": 342.5 }
 ```
 
 ---
 
 ## Error Responses
 
-All errors follow a consistent shape:
-
+All errors follow this shape:
 ```json
-{
-  "status": "error",
-  "message": "Human readable message"
-}
+{ "status": "error", "message": "Human readable message" }
 ```
 
 Validation errors include field-level detail:
@@ -370,24 +399,23 @@ Validation errors include field-level detail:
   "status": "error",
   "message": "Validation failed",
   "errors": [
-    { "field": "amount", "message": "amount must be a positive number greater than 0" },
-    { "field": "toAccount", "message": "Must be a valid account ID" }
+    { "field": "amount", "message": "amount must be a positive number greater than 0" }
   ]
 }
 ```
 
-| Status | Meaning |
+| Code | Meaning |
 |---|---|
 | `200` | Success |
 | `201` | Created |
-| `400` | Bad request (business logic failure) |
-| `401` | Unauthenticated |
-| `403` | Forbidden (authenticated but not authorised) |
+| `400` | Bad request (business logic) |
+| `401` | Not authenticated |
+| `403` | Authenticated but not authorised |
 | `404` | Not found |
 | `409` | Conflict (duplicate key) |
 | `422` | Validation failed |
 | `429` | Rate limited |
-| `500` | Something went wrong on our end |
+| `500` | Server error |
 
 ---
 
@@ -395,30 +423,53 @@ Validation errors include field-level detail:
 
 | Scope | Limit |
 |---|---|
-| All endpoints | 200 requests / 15 minutes / IP |
-| Auth endpoints (`/api/auth/*`) | 20 requests / 15 minutes / IP |
+| All endpoints | 200 requests / 15 min / IP |
+| `/api/v1/auth/*` | 20 requests / 15 min / IP |
 
 ---
 
-## Security Notes
+## Security
 
-- Passwords are hashed with bcrypt (10 rounds) — plain text is never stored
-- JWT tokens are issued for 3 days and stored in `httpOnly; Secure; SameSite=Strict` cookies
-- Logged-out tokens are blacklisted in MongoDB and auto-expire via a TTL index
-- All responses include security headers via Helmet
-- Stack traces are never sent to clients in production (`NODE_ENV=production`)
+- Passwords: bcrypt, 10 rounds, never stored in plain text
+- Access tokens: 15-minute JWT in `httpOnly; Secure; SameSite=Strict` cookie
+- Refresh tokens: 7-day random token stored **hashed** (SHA-256) in MongoDB
+- Logged-out tokens: blacklisted + auto-expire via TTL index
+- Security headers: Helmet (14 headers including CSP, X-Frame-Options)
+- Stack traces: never sent to clients in production
 
 ---
 
-## Known Limitations / TODO
+## Audit Trail
 
-A few things that aren't production-ready yet and I'm aware of:
+Every sensitive action is written to an immutable `auditLog` collection:
 
-- **Floating point money**: `amount` is stored as a JS `Number` (IEEE 754 float). For real banking, you'd want `Decimal128` or store amounts in paisa (integer). `1000.1 + 0.2 !== 1000.3` is a real problem.
-- **No transaction history endpoint**: you can't currently query past transactions for an account
-- **No refresh token flow**: JWT is 3 days, which is long. Should be short-lived access token + long-lived refresh token
-- **No tests**: zero test coverage. Don't ship this to production without fixing this first
-- **Email is fire-and-forget**: a proper setup would use a message queue (BullMQ, SQS) to guarantee delivery and retry on failure
+| Action | Trigger |
+|---|---|
+| `USER_REGISTER` | New user created |
+| `USER_LOGIN` | Successful login |
+| `USER_LOGOUT` | Logout called |
+| `TOKEN_REFRESH` | Access token refreshed |
+| `ACCOUNT_CREATED` | New bank account opened |
+| `TRANSACTION_INITIATED` | Transfer started |
+| `TRANSACTION_COMPLETED` | Transfer committed |
+| `TRANSACTION_FAILED` | Transfer rolled back |
+| `INITIAL_FUNDS_ADDED` | System user top-up |
+
+Audit entries store: userId, action, metadata, IP address, user agent, and X-Request-ID for end-to-end tracing. Auto-deleted after 90 days (configurable via `AUDIT_LOG_RETENTION_DAYS`).
+
+---
+
+## Running Tests
+
+```bash
+npm test              # jest --coverage (23 tests)
+npm run test:watch    # watch mode
+```
+
+**Test coverage of utilities (100%)**:
+- `asyncHandler.js` — error forwarding, pass-through, error identity
+- `currency.js` — paise conversion, IEEE 754 edge cases, formatting
+- `validateEnv.js` — missing vars, weak secrets, mocked process.exit
 
 ---
 
