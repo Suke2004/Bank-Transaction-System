@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
 const ledgerModel = require('./ledger.model');
 
 const accountSchema = new mongoose.Schema({

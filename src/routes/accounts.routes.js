@@ -1,6 +1,7 @@
 const express = require("express");
 const authMiddleware = require("../middleware/auth.middleware");
 const accountController = require("../controllers/account.controller");
+const { validateAccountId } = require("../middleware/validate.middleware");
 
 const router = express.Router();
 
@@ -14,8 +15,13 @@ router.post("/", authMiddleware.authMiddleware, accountController.createAccountC
 router.get("/", authMiddleware.authMiddleware, accountController.getUserAccountsController);
 
 /**
- * - GET api/accounts/balance:accountID
+ * - GET api/accounts/balance/:accountId
  */
-router.get("/balance/:accountId", authMiddleware.authMiddleware, accountController.getAccountBalanceController);
+router.get(
+  "/balance/:accountId",
+  authMiddleware.authMiddleware,
+  validateAccountId,
+  accountController.getAccountBalanceController
+);
 
 module.exports = router;

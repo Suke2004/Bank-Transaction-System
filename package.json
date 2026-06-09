@@ -1,12 +1,12 @@
 {
   "name": "bank-ledger",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Bank ledger system with double-entry bookkeeping",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx nodemon server.js",
-    "start": "node server.js"
+    "dev": "NODE_ENV=development npx nodemon server.js",
+    "start": "NODE_ENV=production node server.js"
   },
   "keywords": [],
   "author": "",
@@ -15,11 +15,16 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
-    "cookieparser": "^0.1.0",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "express-validator": "^7.3.2",
+    "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.3",
-    "nodemailer": "^8.0.10"
+    "morgan": "^1.11.0",
+    "nodemailer": "^8.0.10",
+    "winston": "^3.19.0"
   }
 }

@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const logger = require('../utils/logger');
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -12,11 +13,11 @@ const transporter = nodemailer.createTransport({
 });
 
 // Verify the connection configuration
-transporter.verify((error, success) => {
+transporter.verify((error) => {
   if (error) {
-    console.error('Error connecting to email server:', error);
+    logger.error('Error connecting to email server', { error: error.message });
   } else {
-    console.log('Email server is ready to send messages');
+    logger.info('Email server is ready to send messages');
   }
 });
 
@@ -31,10 +32,10 @@ const sendEmail = async (to, subject, text, html) => {
       html, // html body
     });
 
-    console.log('Message sent: %s', info.messageId);
-    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+    logger.info('Email sent', { messageId: info.messageId });
   } catch (error) {
-    console.error('Error sending email:', error);
+    logger.error('Error sending email', { error: error.message });
+    throw error; // re-throw so callers can handle / log
   }
 };
 
