@@ -4,7 +4,8 @@
   "description": "Bank ledger system with double-entry bookkeeping",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
     "dev": "NODE_ENV=development npx nodemon server.js",
     "start": "NODE_ENV=production node server.js"
   },
@@ -26,5 +27,9 @@
     "morgan": "^1.11.0",
     "nodemailer": "^8.0.10",
     "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "supertest": "^7.2.2"
   }
 }

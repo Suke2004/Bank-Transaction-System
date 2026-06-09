@@ -12,6 +12,7 @@ const logger = require("../utils/logger");
 const REQUIRED_ENV = [
   "MONGO_URI",
   "JWT_SECRET",
+  "REFRESH_TOKEN_SECRET",
   "PORT",
 ];
 
@@ -24,6 +25,7 @@ function validateEnv() {
     logger.error(`Missing required environment variables: ${missing.join(", ")}`);
     logger.error("Server cannot start without these variables. Exiting.");
     process.exit(1);
+    return; // Guard for test environments where process.exit is mocked
   }
 
   // JWT secret entropy check

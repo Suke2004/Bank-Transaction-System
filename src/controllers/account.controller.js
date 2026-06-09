@@ -1,21 +1,19 @@
 const accountModel = require("../models/account.model");
 const asyncHandler = require("../utils/asyncHandler");
+const logAudit = require("../utils/audit");
+const { paiseToRupees } = require("../utils/currency");
 
 const createAccountController = asyncHandler(async (req, res) => {
   const user = req.user;
 
-  const account = await accountModel.create({
-    user: user._id,
-  });
+  const account = await accountModel.create({ user: user._id });
 
-  res.status(201).json({
-    account,
-  });
+  logAudit(req, "ACCOUNT_CREATED", { accountId: account._id });
+
+  res.status(201).json({ account });
 });
 
 const getUserAccountsController = asyncHandler(async (req, res) => {
-  // Production note: this returns ALL accounts. For users with many accounts
-  // you'd add pagination (limit/skip or cursor-based). Added basic defaults here.
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(50, parseInt(req.query.limit) || 20);
   const skip = (page - 1) * limit;
@@ -27,12 +25,7 @@ const getUserAccountsController = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     accounts,
-    pagination: {
-      page,
-      limit,
-      total,
-      pages: Math.ceil(total / limit),
-    },
+    pagination: { page, limit, total, pages: Math.ceil(total / limit) },
   });
 });
 
@@ -45,16 +38,16 @@ const getAccountBalanceController = asyncHandler(async (req, res) => {
   });
 
   if (!account) {
-    return res.status(404).json({
-      message: "Account not found",
-    });
+    return res.status(404).json({ message: "Account not found" });
   }
 
-  const balance = await account.getBalance();
+  // getBalance() returns paise — convert to rupees for the response
+  const balancePaise = await account.getBalance();
 
   res.status(200).json({
     accountId: account._id,
-    balance: balance,
+    balance: paiseToRupees(balancePaise),
+    currency: account.currency,
   });
 });
 

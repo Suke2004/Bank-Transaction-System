@@ -24,7 +24,7 @@ const transactionSchema = new mongoose.Schema({
     amount: {
         type: Number,
         required: [true, 'Amount is required for a transaction'],
-        min: [0.01, 'Transaction amount must be at least 0.01']
+        min: [1, 'Transaction amount must be at least 1 paise (₹0.01)']
     },
     idempotencyKey: {
         type: String,

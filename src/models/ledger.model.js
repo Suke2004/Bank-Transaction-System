@@ -13,7 +13,7 @@ const ledgerSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: [true, "Amount is required"],
-      min: [0.01, "Amount must be greater than 0"],
+      min: [1, "Amount must be at least 1 paise (₹0.01)"],
       immutable: true,
     },
 
