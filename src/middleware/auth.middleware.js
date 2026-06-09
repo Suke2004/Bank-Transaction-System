@@ -1,32 +1,38 @@
 const userModel = require("../models/user.model");
 const jwt = require("jsonwebtoken");
-const sendEmail = require("../services/email.service");
+const tokenBlackListModel = require("../models/blackList.model");
 
-async function authMiddleware(req, res, next) { 
-    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+async function authMiddleware(req, res, next) {
+  const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
 
-    if(!token) {
-        return res.status(401).json({
-            message: "Unauthorized. No token provided.",
-            status: "failed",
-        });
-    }
+  if (!token) {
+    return res.status(401).json({
+      message: "Unauthorized access, token is missing",
+    });
+  }
 
-    try {
-        decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const isBlacklisted = await tokenBlackListModel.findOne({ token });
 
-        const user = await userModel.findById(decoded.userID);
-        req.user = user
-        return next();
+  if (isBlacklisted) {
+    return res.status(401).json({
+      message: "Unauthorized access, token is invalid",
+    });
+  }
 
-    } catch (err) {
-        return res.status(401).json({
-            message: "Unauthorized. Invalid token.",
-            status: "failed"
-        })
-    }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await userModel.findById(decoded.userId);
+
+    req.user = user;
+
+    return next();
+  } catch (err) {
+    return res.status(401).json({
+      message: "Unauthorized access, token is invalid",
+    });
+  }
 }
-
 async function authSystemUserMiddleware(req, res, next) {
   const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
 
@@ -36,10 +42,18 @@ async function authSystemUserMiddleware(req, res, next) {
     });
   }
 
+  const isBlacklisted = await tokenBlackListModel.findOne({ token });
+
+  if (isBlacklisted) {
+    return res.status(401).json({
+      message: "Unauthorized access, token is invalid",
+    });
+  }
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const user = await userModel.findById(decoded.userID).select("+systemUser");
+    const user = await userModel.findById(decoded.userId).select("+systemUser");
     if (!user.systemUser) {
       return res.status(403).json({
         message: "Forbidden access, not a system user",
@@ -54,10 +68,9 @@ async function authSystemUserMiddleware(req, res, next) {
       message: "Unauthorized access, token is invalid",
     });
   }
-    console.log("CONFIRMED ITS A SYSTEM USER");
 }
 
 module.exports = {
-    authMiddleware,
-    authSystemUserMiddleware
+  authMiddleware,
+  authSystemUserMiddleware,
 };

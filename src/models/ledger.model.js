@@ -1,52 +1,105 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const ledgerSchema = new mongoose.Schema({
+const ledgerSchema = new mongoose.Schema(
+  {
     account: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'account',
-        required: [true, 'Ledger entry must be associated with an account'],
-        index: true,
-        immutable: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Account",
+      required: [true, "Ledger entry must be associated with an account"],
+      index: true,
+      immutable: true,
     },
+
     amount: {
-        type: Number,
-        required: [true, 'Amount is required for a ledger entry'],
-        immutable: true
+      type: Number,
+      required: [true, "Amount is required"],
+      min: [0.01, "Amount must be greater than 0"],
+      immutable: true,
     },
+
     transaction: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'transaction',
-        required: [true, 'Ledger entry must be associated with a transaction'],
-        index: true,
-        immutable: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Transaction",
+      required: [true, "Ledger entry must be associated with a transaction"],
+      index: true,
+      immutable: true,
     },
+
     type: {
-        type: String,
-        enum: {
-            values: ['DEBIT', 'CREDIT'],
-            message: 'Ledger entry type must be either DEBIT or CREDIT'
-        },
-        required: [true, 'Ledger entry must have a type'],
-        immutable: true
-    }
+      type: String,
+      enum: {
+        values: ["DEBIT", "CREDIT"],
+        message: "Ledger type must be either DEBIT or CREDIT",
+      },
+      required: [true, "Ledger entry type is required"],
+      immutable: true,
+    },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  },
+);
+
+/**
+ * Common indexes
+ */
+ledgerSchema.index({ account: 1, createdAt: -1 });
+
+ledgerSchema.index({ transaction: 1 });
+
+ledgerSchema.index({
+  account: 1,
+  transaction: 1,
 });
 
-function preventLedgerModification(next) { 
-    throw new Error('Ledger entries are immutable and cannot be modified after creation');
+ledgerSchema.index({
+  transaction: 1,
+  account: 1,
+  type: 1,
+});
+
+/**
+ * Prevent document updates
+ */
+ledgerSchema.pre("save", function (next) {
+  if (!this.isNew) {
+    return next(
+      new Error("Ledger entries are immutable and cannot be modified"),
+    );
+  }
+});
+
+/**
+ * Prevent query-based updates/deletes
+ */
+function preventLedgerMutation(next) {
+  next(
+    new Error("Ledger entries are immutable and cannot be updated or deleted"),
+  );
 }
 
-ledgerSchema.pre('findOneAndUpdate', preventLedgerModification);
-ledgerSchema.pre('updateOne', preventLedgerModification);
-ledgerSchema.pre('updateMany', preventLedgerModification);
-ledgerSchema.pre('deleteOne', preventLedgerModification);
-ledgerSchema.pre('deleteMany', preventLedgerModification);
-ledgerSchema.pre('remove', preventLedgerModification);
-ledgerSchema.pre('findOneAndDelete', preventLedgerModification);
-ledgerSchema.pre('findOneAndRemove', preventLedgerModification);
-ledgerSchema.pre('findOneAndReplace', preventLedgerModification);
+ledgerSchema.pre("updateOne", preventLedgerMutation);
+ledgerSchema.pre("updateMany", preventLedgerMutation);
+ledgerSchema.pre("findOneAndUpdate", preventLedgerMutation);
+ledgerSchema.pre("replaceOne", preventLedgerMutation);
+ledgerSchema.pre("findOneAndReplace", preventLedgerMutation);
 
+ledgerSchema.pre("deleteOne", preventLedgerMutation);
+ledgerSchema.pre("deleteMany", preventLedgerMutation);
+ledgerSchema.pre("findOneAndDelete", preventLedgerMutation);
 
+/**
+ * Optional helper
+ */
+ledgerSchema.methods.isDebit = function () {
+  return this.type === "DEBIT";
+};
 
-const LedgerModel = mongoose.model('Ledger', ledgerSchema);
+ledgerSchema.methods.isCredit = function () {
+  return this.type === "CREDIT";
+};
+
+const LedgerModel = mongoose.model("Ledger", ledgerSchema);
 
 module.exports = LedgerModel;
