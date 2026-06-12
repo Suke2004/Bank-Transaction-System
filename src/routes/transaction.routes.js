@@ -1,6 +1,6 @@
-const express = require('express');
+const express = require("express");
 const transactionController = require("../controllers/transaction.controller");
-const authMiddleware = require("../middleware/auth.middleware");
+const { authMiddleware, authSystemUserMiddleware } = require("../middleware/auth.middleware");
 const {
   validateCreateTransaction,
   validateInitialFunds,
@@ -9,46 +9,40 @@ const {
 
 const router = express.Router();
 
-/**
- * POST /api/v1/transaction
- * Transfer money between two accounts.
- */
-router.post(
-  "/",
-  authMiddleware.authMiddleware,
-  validateCreateTransaction,
-  transactionController.createTransaction
-);
-
-/**
- * GET /api/v1/transaction
- * List the authenticated user's transaction history (paginated).
- * Query params: ?page=1 &limit=20 &status=COMPLETED
- */
+/* GET /api/v1/transaction - List user's transaction history */
 router.get(
   "/",
-  authMiddleware.authMiddleware,
+  authMiddleware,
   transactionController.getTransactionHistory
 );
 
-/**
- * GET /api/v1/transaction/:id
- * Get a single transaction by ID (must involve the user's account).
- */
+/* GET /api/v1/transaction/export/csv - Export history as CSV (defined BEFORE :id to avoid clash) */
+router.get(
+  "/export/csv",
+  authMiddleware,
+  transactionController.exportTransactionsCsv
+);
+
+/* GET /api/v1/transaction/:id - Get transaction detail */
 router.get(
   "/:id",
-  authMiddleware.authMiddleware,
+  authMiddleware,
   validateTransactionId,
   transactionController.getTransactionById
 );
 
-/**
- * POST /api/v1/transaction/system/initial-funds
- * Credit initial funds into an account (system user only).
- */
+/* POST /api/v1/transaction - Execute new transfer */
+router.post(
+  "/",
+  authMiddleware,
+  validateCreateTransaction,
+  transactionController.createTransaction
+);
+
+/* POST /api/v1/transaction/system/initial-funds - Add bank funds (system/teller/manager/admin privilege only) */
 router.post(
   "/system/initial-funds",
-  authMiddleware.authSystemUserMiddleware,
+  authSystemUserMiddleware,
   validateInitialFunds,
   transactionController.createInitialFundsTransaction
 );
