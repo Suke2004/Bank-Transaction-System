@@ -64,10 +64,18 @@ app.get("/health", (req, res) => {
 const authRouter = require("./routes/auth.routes");
 const accountRouter = require("./routes/accounts.routes");
 const transactionRoutes = require("./routes/transaction.routes");
+const adminRouter = require("./routes/admin.routes");
+const beneficiaryRouter = require("./routes/beneficiary.routes");
+const notificationRouter = require("./routes/notification.routes");
+const analyticsRouter = require("./routes/analytics.routes");
 
 app.use("/api/v1/auth", authLimiter, authRouter);
 app.use("/api/v1/accounts", accountRouter);
 app.use("/api/v1/transaction", transactionRoutes);
+app.use("/api/v1/admin", adminRouter);
+app.use("/api/v1/beneficiaries", beneficiaryRouter);
+app.use("/api/v1/notifications", notificationRouter);
+app.use("/api/v1/analytics", analyticsRouter);
 
 /* ─── 404 Handler ────────────────────────────────────────────────────────── */
 app.use((req, res) => {

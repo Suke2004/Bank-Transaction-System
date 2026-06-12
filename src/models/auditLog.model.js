@@ -37,10 +37,6 @@ const auditLogSchema = new mongoose.Schema(
     },
     action: {
       type: String,
-      enum: {
-        values: AUDIT_ACTIONS,
-        message: "Unknown audit action",
-      },
       required: [true, "Audit action is required"],
       index: true,
     },
