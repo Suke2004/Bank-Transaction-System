@@ -18,6 +18,19 @@ const accountSchema = new mongoose.Schema({
         required: [true, "Currency is required for creating an account"],
         default: "INR",
     },
+    nickname: {
+        type: String,
+        maxLength: [50, "Nickname cannot exceed 50 characters"],
+        default: "",
+    },
+    dailyLimit: {
+        type: Number,
+        default: null, // null means use system config default
+    },
+    isFlaggedFraud: {
+        type: Boolean,
+        default: false,
+    },
 }, {
     timestamps: true,
 });

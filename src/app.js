@@ -16,7 +16,7 @@ app.use(helmet());
 
 app.use(
   cors({
-    origin: process.env.ALLOWED_ORIGIN || "http://localhost:3000",
+    origin: process.env.ALLOWED_ORIGIN || "http://localhost:3001",
     credentials: true,
   })
 );

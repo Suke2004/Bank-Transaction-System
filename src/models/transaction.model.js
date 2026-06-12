@@ -31,6 +31,34 @@ const transactionSchema = new mongoose.Schema({
         required: [true, 'Transaction must have an idempotent key'],
         unique: true,
         index: true
+    },
+    description: {
+        type: String,
+        maxLength: [200, 'Description cannot exceed 200 characters'],
+        trim: true,
+        default: ''
+    },
+    flagged: {
+        type: Boolean,
+        default: false
+    },
+    flagReason: {
+        type: String,
+        default: ''
+    },
+    flaggedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user',
+        default: null
+    },
+    reversedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user',
+        default: null
+    },
+    reversedAt: {
+        type: Date,
+        default: null
     }
 }, {
     timestamps: true

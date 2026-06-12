@@ -42,6 +42,19 @@ async function verifyAndLoadUser(token, selectExtra = "") {
     err.statusCode = 401;
     throw err;
   }
+
+  if (!user.isActive) {
+    const err = new Error(user.suspendReason ? `Account suspended: ${user.suspendReason}` : "Account suspended");
+    err.statusCode = 403;
+    throw err;
+  }
+
+  if (user.lockedUntil && user.lockedUntil > new Date()) {
+    const err = new Error(`Account is locked until ${user.lockedUntil.toLocaleString()}`);
+    err.statusCode = 403;
+    throw err;
+  }
+
   return user;
 }
 
@@ -64,7 +77,7 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
 
 /**
  * System-user authentication guard.
- * Same as authMiddleware but additionally enforces the systemUser flag.
+ * Same as authMiddleware but additionally enforces admin/superAdmin role or systemUser flag.
  */
 const authSystemUserMiddleware = asyncHandler(async (req, res, next) => {
   const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
@@ -77,7 +90,8 @@ const authSystemUserMiddleware = asyncHandler(async (req, res, next) => {
 
   const user = await verifyAndLoadUser(token, "+systemUser");
 
-  if (!user.systemUser) {
+  const isSystemUser = user.systemUser || ["admin", "superAdmin", "manager", "teller"].includes(user.role);
+  if (!isSystemUser) {
     return res.status(403).json({
       message: "Forbidden access, not a system user",
     });

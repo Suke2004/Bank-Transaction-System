@@ -110,6 +110,19 @@ const validateCreateTransaction = [
     .trim()
     .notEmpty().withMessage("idempotencyKey is required")
     .isLength({ min: 8, max: 128 }).withMessage("idempotencyKey must be 8–128 characters"),
+  body("pin")
+    .notEmpty().withMessage("Transaction PIN is required")
+    .isLength({ min: 6, max: 6 }).withMessage("PIN must be exactly 6 digits")
+    .isNumeric().withMessage("PIN must contain only numbers"),
+  body("description")
+    .optional()
+    .trim()
+    .isLength({ max: 200 }).withMessage("Description cannot exceed 200 characters"),
+  body("otpToken")
+    .optional()
+    .trim()
+    .isLength({ min: 6, max: 6 }).withMessage("OTP must be exactly 6 digits")
+    .isNumeric().withMessage("OTP must contain only numbers"),
   runValidation,
   convertAmountToPaise,  // runs only if validation passes
 ];
@@ -143,6 +156,96 @@ const validateTransactionId = [
   runValidation,
 ];
 
+/* ─── New Security / Feature Validators ──────────────────────────────── */
+
+const validateOtp = [
+  body("otp")
+    .notEmpty().withMessage("OTP is required")
+    .isLength({ min: 6, max: 6 }).withMessage("OTP must be exactly 6 digits")
+    .isNumeric().withMessage("OTP must contain only numbers"),
+  body("purpose")
+    .notEmpty().withMessage("Purpose is required")
+    .isIn([
+      "LOGIN",
+      "REGISTER",
+      "FORGOT_PASSWORD",
+      "CHANGE_PASSWORD",
+      "CHANGE_PIN",
+      "ADD_BENEFICIARY",
+      "CLOSE_ACCOUNT",
+      "HIGH_VALUE_TRANSFER",
+    ]).withMessage("Invalid OTP purpose"),
+  runValidation,
+];
+
+const validatePin = [
+  body("pin")
+    .notEmpty().withMessage("PIN is required")
+    .isLength({ min: 6, max: 6 }).withMessage("PIN must be exactly 6 digits")
+    .isNumeric().withMessage("PIN must contain only numbers"),
+  runValidation,
+];
+
+const validateChangePin = [
+  body("currentPin")
+    .notEmpty().withMessage("Current PIN is required")
+    .isLength({ min: 6, max: 6 }).withMessage("Current PIN must be exactly 6 digits")
+    .isNumeric().withMessage("Current PIN must contain only numbers"),
+  body("newPin")
+    .notEmpty().withMessage("New PIN is required")
+    .isLength({ min: 6, max: 6 }).withMessage("New PIN must be exactly 6 digits")
+    .isNumeric().withMessage("New PIN must contain only numbers"),
+  runValidation,
+];
+
+const validateBeneficiary = [
+  body("name")
+    .trim()
+    .notEmpty().withMessage("Beneficiary name is required")
+    .isLength({ min: 2, max: 100 }).withMessage("Name must be between 2 and 100 characters"),
+  body("accountId")
+    .notEmpty().withMessage("Account ID is required")
+    .custom(isObjectId),
+  body("note")
+    .optional()
+    .trim()
+    .isLength({ max: 200 }).withMessage("Note cannot exceed 200 characters"),
+  runValidation,
+];
+
+const validateAccountNickname = [
+  body("nickname")
+    .trim()
+    .notEmpty().withMessage("Nickname is required")
+    .isLength({ max: 50 }).withMessage("Nickname cannot exceed 50 characters"),
+  runValidation,
+];
+
+const validateDateRange = [
+  body("from")
+    .optional()
+    .isISO8601().withMessage("From date must be a valid ISO8601 date string"),
+  body("to")
+    .optional()
+    .isISO8601().withMessage("To date must be a valid ISO8601 date string")
+    .custom((value, { req }) => {
+      if (value && req.body.from && new Date(value) < new Date(req.body.from)) {
+        throw new Error("To date cannot be earlier than From date");
+      }
+      return true;
+    }),
+  runValidation,
+];
+
+const validateSystemConfig = [
+  body("key")
+    .trim()
+    .notEmpty().withMessage("Config key is required"),
+  body("value")
+    .notEmpty().withMessage("Config value is required"),
+  runValidation,
+];
+
 module.exports = {
   validateRegister,
   validateLogin,
@@ -150,4 +253,11 @@ module.exports = {
   validateInitialFunds,
   validateAccountId,
   validateTransactionId,
+  validateOtp,
+  validatePin,
+  validateChangePin,
+  validateBeneficiary,
+  validateAccountNickname,
+  validateDateRange,
+  validateSystemConfig,
 };
