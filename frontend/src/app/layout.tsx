@@ -14,6 +14,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 import { AuthProvider } from "@/lib/context/AuthContext";
 import { NotificationProvider } from "@/lib/context/NotificationContext";
+import { Toast } from "@/components/ui/Toast";
 
 export const metadata: Metadata = {
   title: "Bank Ledger — Enterprise Banking",
@@ -31,6 +32,7 @@ export default function RootLayout({
         <AuthProvider>
           <NotificationProvider>
             {children}
+            <Toast />
           </NotificationProvider>
         </AuthProvider>
       </body>

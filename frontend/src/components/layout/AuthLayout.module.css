@@ -1,0 +1,184 @@
+.authContainer {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-deep);
+  animation: fadeIn 0.4s ease;
+}
+
+/* Brand Section (Left Side) */
+.brandSection {
+  flex: 1.2;
+  background: linear-gradient(135deg, #0A1628 0%, #060F1E 100%);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .brandSection {
+    display: none; /* Hide on mobile/tablets */
+  }
+}
+
+.brandAccent {
+  position: absolute;
+  top: -20%;
+  left: -20%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(circle, rgba(30, 111, 234, 0.15) 0%, transparent 80%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.brandLogo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+}
+
+.brandLogoIcon {
+  color: var(--accent-blue);
+}
+
+.brandContent {
+  max-width: 480px;
+  margin-top: 100px;
+}
+
+.tagline {
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  letter-spacing: -1px;
+}
+
+.taglineHighlight {
+  background: linear-gradient(to right, var(--accent-blue), var(--accent-emerald));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.description {
+  font-size: 16px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.brandFooter {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Form Section (Right Side) */
+.formSection {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.formBox {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.formHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formTitle {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.formSubtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.linkText {
+  color: var(--accent-blue);
+  font-weight: 600;
+}
+
+.linkText:hover {
+  color: var(--accent-blue-hover);
+  text-decoration: underline;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.checkboxInput {
+  accent-color: var(--accent-blue);
+  width: 16px;
+  height: 16px;
+}
+
+.footerActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.strengthMeter {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  height: 4px;
+  width: 100%;
+}
+
+.strengthBar {
+  flex: 1;
+  background-color: var(--border);
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+}
+
+.strengthText {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+  align-self: flex-end;
+}

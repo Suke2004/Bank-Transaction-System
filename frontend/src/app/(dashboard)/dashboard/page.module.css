@@ -1,0 +1,166 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  animation: slideUp var(--transition-normal);
+}
+
+.welcomeSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.welcomeHeading {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.welcomeSubtitle {
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+.summaryRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.metricCard {
+  background: linear-gradient(135deg, rgba(15, 29, 53, 0.9) 0%, rgba(10, 22, 40, 0.9) 100%);
+  border: 1px solid var(--border);
+  padding: 24px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-normal), border-color var(--transition-fast);
+}
+
+.metricCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(30, 111, 234, 0.4);
+}
+
+.iconWrapper {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconWrapperBlue {
+  background: rgba(30, 111, 234, 0.15);
+  color: var(--accent-blue);
+}
+
+.iconWrapperEmerald {
+  background: rgba(0, 200, 150, 0.15);
+  color: var(--accent-emerald);
+}
+
+.iconWrapperRose {
+  background: rgba(255, 77, 106, 0.15);
+  color: var(--error);
+}
+
+.metricInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metricLabel {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metricValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-mono), monospace;
+}
+
+.quickActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.quickActionBtn {
+  flex: 1;
+  min-width: 160px;
+  height: 50px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+}
+
+.accountsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.accountsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.recentSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.chartContainer {
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.transactionsCard {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.noDataText {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 40px 0;
+  font-style: italic;
+}

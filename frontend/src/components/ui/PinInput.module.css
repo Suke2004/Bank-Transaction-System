@@ -1,0 +1,66 @@
+.pinWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  position: relative;
+}
+
+/* Hide the actual input but keep it focusable */
+.hiddenInput {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  z-index: -1;
+}
+
+.dotsRow {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  cursor: pointer;
+  padding: 16px;
+}
+
+.dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background-color: transparent;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.15s ease,
+              border-color 0.15s ease;
+}
+
+.dotActive {
+  background-color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  transform: scale(1.25);
+  box-shadow: 0 0 10px rgba(30, 111, 234, 0.4);
+}
+
+.shake {
+  animation: shakeAnimation 0.4s ease;
+}
+
+.shake .dotActive {
+  background-color: var(--error);
+  border-color: var(--error);
+  box-shadow: 0 0 10px rgba(255, 77, 106, 0.4);
+}
+
+@keyframes shakeAnimation {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.lockoutText {
+  color: var(--error);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}

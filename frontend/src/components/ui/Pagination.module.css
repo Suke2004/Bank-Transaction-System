@@ -1,0 +1,26 @@
+.paginationContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  width: 100%;
+  border-top: 1px solid var(--border);
+  margin-top: 16px;
+}
+
+.info {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pageIndicator {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 500;
+}

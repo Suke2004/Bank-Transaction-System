@@ -1,0 +1,78 @@
+.otpContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+}
+
+.inputRow {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.otpBox {
+  width: 50px;
+  height: 56px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  background-color: rgba(10, 22, 40, 0.6);
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text-primary);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.otpBox:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 12px rgba(30, 111, 234, 0.25);
+  background-color: rgba(10, 22, 40, 0.9);
+}
+
+.shake {
+  animation: shakeAnimation 0.4s ease;
+  border-color: var(--error) !important;
+  box-shadow: 0 0 12px rgba(255, 77, 106, 0.25) !important;
+}
+
+@keyframes shakeAnimation {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.resendSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.cooldownText {
+  color: var(--text-secondary);
+}
+
+.resendButton {
+  color: var(--accent-blue);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.resendButton:hover {
+  color: var(--accent-blue-hover);
+  text-decoration: underline;
+}
+
+.resendButton:disabled {
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  text-decoration: none;
+  opacity: 0.5;
+}

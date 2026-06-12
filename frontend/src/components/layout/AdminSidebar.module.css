@@ -1,0 +1,119 @@
+.sidebar {
+  width: 260px;
+  background-color: var(--surface);
+  border-right: 1px solid var(--border);
+  height: calc(100vh - 72px);
+  position: sticky;
+  top: 72px;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  overflow-x: hidden;
+}
+
+.collapsed {
+  width: 72px;
+}
+
+.header {
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.adminLabel {
+  font-size: 11px;
+  font-weight: 800;
+  color: #E74C3C;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.redDot {
+  width: 6px;
+  height: 6px;
+  background-color: #E74C3C;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #E74C3C;
+  animation: blink 2s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.toggleBtn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.toggleBtn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.navSection {
+  flex-grow: 1;
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.navItem a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+}
+
+.navItem a:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+}
+
+.activeItem a {
+  background-color: rgba(231, 76, 60, 0.08);
+  color: var(--text-primary);
+  border: 1px solid rgba(231, 76, 60, 0.15);
+}
+
+.activeItem svg {
+  color: #E74C3C;
+}
+
+.iconOnly {
+  justify-content: center;
+  padding: 12px 0 !important;
+}
+
+.label {
+  transition: opacity 0.3s ease;
+}
+
+.collapsedLabel {
+  opacity: 0;
+  width: 0;
+  pointer-events: none;
+}

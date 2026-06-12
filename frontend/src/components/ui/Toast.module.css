@@ -1,0 +1,93 @@
+.toastContainer {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 9999;
+  max-width: 380px;
+  width: calc(100vw - 48px);
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.success {
+  border-left: 4px solid var(--accent-emerald);
+}
+
+.successIcon {
+  color: var(--accent-emerald);
+}
+
+.error {
+  border-left: 4px solid var(--error);
+}
+
+.errorIcon {
+  color: var(--error);
+}
+
+.info {
+  border-left: 4px solid var(--accent-blue);
+}
+
+.infoIcon {
+  color: var(--accent-blue);
+}
+
+.warning {
+  border-left: 4px solid #F39C12;
+}
+
+.warningIcon {
+  color: #F39C12;
+}
+
+.message {
+  flex-grow: 1;
+  line-height: 1.4;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
