@@ -80,6 +80,7 @@ const sendOtpEmail = async (userId, purpose) => {
   if (!user) throw new Error("User not found");
 
   const rawOtp = await generateAndStoreOtp(userId, purpose);
+  console.log(`\n🔑 [DEV FALLBACK] OTP sent to ${user.email} for ${purpose}: ${rawOtp}\n`);
   await emailService.sendOtpEmail(user.email, user.name, rawOtp, purpose);
 };
 

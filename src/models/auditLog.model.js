@@ -69,16 +69,14 @@ const RETENTION_SECONDS =
   parseInt(process.env.AUDIT_LOG_RETENTION_DAYS || "90") * 24 * 60 * 60;
 auditLogSchema.index({ createdAt: 1 }, { expireAfterSeconds: RETENTION_SECONDS });
 
-// Immutability — same pattern as ledger.model.js
-auditLogSchema.pre("save", function (next) {
+auditLogSchema.pre("save", function () {
   if (!this.isNew) {
-    return next(new Error("Audit log entries are immutable and cannot be modified"));
+    throw new Error("Audit log entries are immutable and cannot be modified");
   }
-  next();
 });
 
-function preventMutation(next) {
-  next(new Error("Audit log entries are immutable and cannot be updated or deleted"));
+function preventMutation() {
+  throw new Error("Audit log entries are immutable and cannot be updated or deleted");
 }
 
 auditLogSchema.pre("updateOne", preventMutation);

@@ -68,7 +68,7 @@ export default function LoginPage() {
 
       {/* Form Section Right */}
       <div className={styles.formSection}>
-        <div className={styles.formBox}>
+        <div className="glass-card" style={{ width: "100%", maxWidth: "420px", padding: "40px", display: "flex", flexDirection: "column", gap: "28px" }}>
           <div className={styles.formHeader}>
             <h2 className={styles.formTitle}>Sign In</h2>
             <p className={styles.formSubtitle}>

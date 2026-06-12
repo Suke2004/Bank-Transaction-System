@@ -62,21 +62,17 @@ ledgerSchema.index({
 /**
  * Prevent document updates
  */
-ledgerSchema.pre("save", function (next) {
+ledgerSchema.pre("save", function () {
   if (!this.isNew) {
-    return next(
-      new Error("Ledger entries are immutable and cannot be modified"),
-    );
+    throw new Error("Ledger entries are immutable and cannot be modified");
   }
 });
 
 /**
  * Prevent query-based updates/deletes
  */
-function preventLedgerMutation(next) {
-  next(
-    new Error("Ledger entries are immutable and cannot be updated or deleted"),
-  );
+function preventLedgerMutation() {
+  throw new Error("Ledger entries are immutable and cannot be updated or deleted");
 }
 
 ledgerSchema.pre("updateOne", preventLedgerMutation);

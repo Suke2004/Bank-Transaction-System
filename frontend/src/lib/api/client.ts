@@ -1,4 +1,4 @@
-const API_BASE_URL = ""; // Empty string because Next.js rewrites route /api/* to localhost:3000
+const API_BASE_URL = "/v2"; // Prepend base path /v2 for Next.js basePath rewrites
 
 interface ApiFetchOptions extends RequestInit {
   skipAuthRefresh?: boolean;
@@ -45,7 +45,7 @@ export const apiFetch = async (endpoint: string, options: ApiFetchOptions = {}):
 
         try {
           // Attempt to refresh the access token using the refresh cookie
-          const refreshRes = await fetch("/api/v1/auth/refresh", {
+          const refreshRes = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
             method: "POST",
             credentials: "include",
           });

@@ -23,12 +23,12 @@ export interface Session {
 export const registerUser = (body: any) => apiFetch("/api/v1/auth/register", { method: "POST", body: JSON.stringify(body) });
 
 export const verifyEmail = (body: { userId: string; otp: string }) =>
-  apiFetch("/api/v1/auth/verify-email", { method: "POST", body: JSON.stringify(body) });
+  apiFetch("/api/v1/auth/verify-email", { method: "POST", body: JSON.stringify({ ...body, purpose: "REGISTER" }) });
 
 export const loginUser = (body: any) => apiFetch("/api/v1/auth/login", { method: "POST", body: JSON.stringify(body) });
 
 export const verifyLoginOtp = (body: { userId: string; otp: string }) =>
-  apiFetch("/api/v1/auth/verify-login-otp", { method: "POST", body: JSON.stringify(body) });
+  apiFetch("/api/v1/auth/verify-login-otp", { method: "POST", body: JSON.stringify({ ...body, purpose: "LOGIN" }) });
 
 export const logoutUser = () => apiFetch("/api/v1/auth/logout", { method: "POST" });
 

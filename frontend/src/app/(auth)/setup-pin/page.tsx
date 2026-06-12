@@ -74,7 +74,7 @@ export default function SetupPinPage() {
       </div>
 
       <div className={styles.formSection}>
-        <div className={styles.formBox} style={{ alignItems: "center" }}>
+        <div className="glass-card" style={{ width: "100%", maxWidth: "420px", padding: "40px", display: "flex", flexDirection: "column", gap: "28px", alignItems: "center" }}>
           <div className={styles.formHeader} style={{ alignItems: "center", textAlign: "center" }}>
             <h2 className={styles.formTitle}>
               {stage === 1 ? "Create PIN" : "Confirm PIN"}

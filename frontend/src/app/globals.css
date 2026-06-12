@@ -1,23 +1,25 @@
 :root {
-  --bg-deep: #060F1E;
-  --surface: #0F1D35;
-  --surface-card: #0A1628;
-  --accent-blue: #1E6FEA;
-  --accent-blue-hover: #1559C2;
-  --accent-emerald: #00C896;
-  --accent-emerald-hover: #00A67D;
-  --error: #FF4D6A;
-  --error-hover: #E03551;
-  --text-primary: #F0F4FF;
-  --text-secondary: #8E9CAE;
-  --border: #1F314F;
-  --glass-bg: rgba(15, 29, 53, 0.7);
-  --glass-border: rgba(31, 49, 79, 0.6);
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --bg-deep: #050814;
+  --surface: #0a0f26;
+  --surface-card: #0e1738;
+  --accent-blue: #2c6be6;
+  --accent-blue-hover: #1b4fb8;
+  --accent-emerald: #02b875;
+  --accent-emerald-hover: #018f5a;
+  --error: #ff3b5c;
+  --error-hover: #d62240;
+  --text-primary: #f3f4f6;
+  --text-secondary: #9aa2b1;
+  --border: rgba(44, 107, 230, 0.15);
+  --glass-bg: rgba(10, 15, 38, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.6);
+  --gold: #dfa83d;
+  --gold-hover: #b88523;
 }
 
 /* Base resets */
@@ -30,7 +32,8 @@
 
 html, body {
   height: 100%;
-  background-color: var(--bg-deep);
+  background: radial-gradient(circle at 50% 0%, #0d1a38 0%, #040814 70%);
+  background-attachment: fixed;
   color: var(--text-primary);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -71,7 +74,7 @@ input, select, textarea {
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -106,18 +109,19 @@ input, select, textarea {
 /* Glassmorphism Styles */
 .glass-card {
   background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   box-shadow: var(--shadow-md);
-  padding: 24px;
+  padding: 28px;
   transition: transform var(--transition-normal), border-color var(--transition-fast), box-shadow var(--transition-normal);
 }
 
 .glass-card:hover {
-  border-color: rgba(30, 111, 234, 0.4);
-  box-shadow: 0 8px 32px rgba(30, 111, 234, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 12px 40px rgba(59, 130, 246, 0.12);
+  transform: translateY(-2px);
 }
 
 /* Common form styling */
@@ -129,24 +133,28 @@ input, select, textarea {
 }
 
 .form-label {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
   color: var(--text-secondary);
+  text-transform: uppercase;
 }
 
 .form-input {
   width: 100%;
-  padding: 12px 16px;
-  border-radius: 8px;
-  background-color: rgba(10, 22, 40, 0.8);
-  border: 1px solid var(--border);
+  padding: 14px 18px;
+  border-radius: 10px;
+  background-color: rgba(3, 7, 18, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 15px;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
 }
 
 .form-input:focus {
   border-color: var(--accent-blue);
-  box-shadow: 0 0 0 2px rgba(30, 111, 234, 0.25);
+  background-color: rgba(3, 7, 18, 0.7);
+  box-shadow: 0 0 0 1px var(--accent-blue);
 }
 
 /* Buttons */
@@ -155,29 +163,31 @@ input, select, textarea {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 24px;
+  padding: 14px 28px;
   font-size: 15px;
   font-weight: 600;
-  border-radius: 8px;
-  transition: background-color var(--transition-fast), transform var(--transition-fast);
+  border-radius: 10px;
+  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .btn:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .btn-primary {
-  background-color: var(--accent-blue);
+  background: linear-gradient(135deg, var(--accent-blue) 0%, #4f46e5 100%);
   color: #ffffff;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: var(--accent-blue-hover);
+  background: linear-gradient(135deg, var(--accent-blue-hover) 0%, #4338ca 100%);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
 }
 
 .btn-secondary {
@@ -192,18 +202,20 @@ input, select, textarea {
 }
 
 .btn-danger {
-  background-color: var(--error);
+  background: linear-gradient(135deg, var(--error) 0%, #be123c 100%);
   color: #ffffff;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.25);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background-color: var(--error-hover);
+  background: linear-gradient(135deg, var(--error-hover) 0%, #9f1239 100%);
+  box-shadow: 0 6px 20px rgba(225, 29, 72, 0.4);
 }
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -211,10 +223,10 @@ input, select, textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.25);
 }

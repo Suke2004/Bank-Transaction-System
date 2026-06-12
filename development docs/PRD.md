@@ -76,7 +76,7 @@ Every interaction should feel protected yet frictionless. Users trust the platfo
 | AUTH-04 | MFA OTP verification on login | 6-digit OTP entry. Valid 10 min. Resend after 60s cooldown. 5 wrong attempts = account locked 30 min. | HIGH |
 | AUTH-05 | Silent session refresh | 15-min access token silently refreshed via `/auth/refresh` using 7-day refresh cookie. Transparent to user. | HIGH |
 | AUTH-06 | Secure logout | Clears all cookies, blacklists token, deletes refresh token from DB. Redirects to login. | HIGH |
-| AUTH-07 | Set a Transaction PIN | On first login prompt user to set a 6-digit numeric PIN. Stored as argon2id hash. Used for all transfers. | HIGH |
+| AUTH-07 | Set a Transaction PIN | On first login prompt user to set a 6-digit numeric PIN. Stored as bcrypt hash. Used for all transfers. | HIGH |
 | AUTH-08 | Change Transaction PIN | Security settings page: enter current PIN → enter new PIN → confirm. OTP to email required as second factor. | MEDIUM |
 | AUTH-09 | Forgot Password flow | Email input → OTP sent → OTP verified → new password form. OTP expires 15 min. | HIGH |
 | AUTH-10 | Account lockout on brute force | 5 consecutive failed login attempts → account locked 30 min → email notification sent. | HIGH |
@@ -293,7 +293,7 @@ Layer 4: High-Value OTP    (email OTP again — for transfers > threshold)
 | **`POST /auth/verify-otp`** — verify login OTP, issue tokens on success | HIGH | ✅ NEW |
 | **`POST /auth/forgot-password`** — OTP-based reset flow | HIGH | ✅ NEW |
 | **`POST /auth/reset-password`** — new password after OTP verified | HIGH | ✅ NEW |
-| **Transaction PIN model** — argon2id-hashed 6-digit PIN per user | HIGH | ✅ NEW |
+| **Transaction PIN model** — bcrypt-hashed 6-digit PIN per user | HIGH | ✅ NEW |
 | **`POST /auth/pin/setup`** — set initial PIN | HIGH | ✅ NEW |
 | **`POST /auth/pin/verify`** — verify PIN before transaction | HIGH | ✅ NEW |
 | **`PUT /auth/pin/change`** — change PIN (requires OTP) | HIGH | ✅ NEW |
@@ -341,14 +341,14 @@ Layer 4: High-Value OTP    (email OTP again — for transfers > threshold)
 | Category | Requirement |
 |----------|-------------|
 | **Performance** | Dashboard: < 2s. Balance: < 500ms. OTP email delivery: < 30s. |
-| **Security** | httpOnly cookies, argon2id PINs, OTP SHA-256 hashed in DB, rate-limited OTP endpoints (3/10min). |
+| **Security** | httpOnly cookies, bcrypt PINs, OTP SHA-256 hashed in DB, rate-limited OTP endpoints (3/10min). |
 | **Availability** | 99.9% uptime target for banking transactions. Graceful degradation for email service failures. |
 | **Audit** | Every sensitive action — auth, transaction, admin op — written to immutable audit log within 500ms. |
 | **Accessibility** | WCAG 2.1 AA. All forms keyboard-navigable. Screen reader labels on status badges and charts. |
 | **Responsiveness** | Mobile-first. 375px–1440px. Bottom-tab navigation on mobile. |
 | **Browser Support** | Chrome 120+, Firefox 120+, Edge 120+, Safari 17+. |
 | **OTP Security** | 6-digit, SHA-256 hashed in DB, TTL 10 min, 3 attempt limit, 60s resend cooldown. |
-| **PIN Security** | 6-digit, argon2id-hashed (parameters: 65k memory, 3 iterations, 4 parallelism), never sent to client, verified server-side only. |
+| **PIN Security** | 6-digit, bcrypt-hashed (10 rounds), never sent to client, verified server-side only. |
 
 ---
 
@@ -409,6 +409,6 @@ Admin Red:            #FF2D55  (admin-mode indicator)
 | OTP email delivery | < 30 seconds |
 | Transfer end-to-end (with PIN) | < 15 seconds |
 | Zero client-side token/PIN storage | 100% |
-| Zero plain-text PIN/OTP in DB | 100% (argon2id / SHA-256) |
+| Zero plain-text PIN/OTP in DB | 100% (bcrypt / SHA-256) |
 | Admin action audit coverage | 100% |
 | Failed brute force lockouts | Automated (no manual intervention needed) |

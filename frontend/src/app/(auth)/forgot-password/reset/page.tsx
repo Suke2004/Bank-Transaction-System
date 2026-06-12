@@ -77,7 +77,7 @@ function ResetPasswordContent() {
       </div>
 
       <div className={styles.formSection}>
-        <div className={styles.formBox}>
+        <div className="glass-card" style={{ width: "100%", maxWidth: "420px", padding: "40px", display: "flex", flexDirection: "column", gap: "28px" }}>
           <div className={styles.formHeader}>
             <h2 className={styles.formTitle}>Reset Password</h2>
             <p className={styles.formSubtitle}>

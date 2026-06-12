@@ -1,115 +1,88 @@
-# Bank Ledger System
+# Bank Ledger
+> Enterprise-grade banking ledger and multi-factor authentication platform.
 
-A secure, enterprise-grade digital banking ledger application combining a robust **Express API backend** and a high-fidelity **Next.js 15 frontend**. 
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Version](https://img.shields.io/badge/version-2.0.0-brightgreen.svg)
+![Node](https://img.shields.io/badge/node-%3E%3D%2020.0.0-orange.svg)
+![Next.js](https://img.shields.io/badge/next.js-15%20App%20Router-black.svg)
 
-The system implements a double-entry bookkeeping model for ledger operations (every transfer creates balanced debits/credits in integer paise to eliminate IEEE-754 floating-point errors) and features multi-tiered security clearance matching standard commercial banking systems.
+Bank Ledger is a high-security, double-entry bookkeeping financial application designed with an emphasis on transaction integrity, multi-factor authentication (MFA), and role-based access control (RBAC). It features a full Node.js API backend coupled with a modern, glassmorphic Next.js frontend interface.
 
----
+## 🚀 Key Features
 
-## 📂 Project Architecture
+### Security & Authentication
+- **4-Layer MFA**: Password → Email OTP → Transaction PIN → High-Value OTP
+- **Argon2id Hashing**: State-of-the-art password and PIN hashing specifically tuned for high memory and time costs.
+- **Strict Rate Limiting**: Exponential lockout mechanisms for login and PIN failures.
+- **Role-Based Access Control**: Granular permissions (Customer, Teller, Manager, Admin, SuperAdmin).
 
-```
-bank-ledger/
-├── development docs/                  # Product and technical specifications
-│   ├── PRD.md                         # Product Requirements Document
-│   └── TRD.md                         # Technical Requirements Document
-├── src/                               # BACKEND SOURCE
-│   ├── app.js                         # Express setup, routing middleware
-│   ├── server.js                      # Service entry point & process lifecycle
-│   ├── controllers/                   # Auth, Account, Transaction, Admin handlers
-│   ├── middleware/                    # Auth, RBAC, inputs validations, request tracking
-│   ├── models/                        # MongoDB collections schemas
-│   ├── services/                      # Otp, Pin, Notifications, CSV and Mailer services
-│   └── utils/                         # Formatter, logger, and correlation tools
-├── frontend/                          # FRONTEND NEXT.JS CLIENT
-│   ├── src/
-│   │   ├── app/                       # App Router layouts and pages
-│   │   │   ├── (auth)/                # Auth templates (Login, OTP verify, PIN setup)
-│   │   │   ├── (dashboard)/           # Retail customer views & statements
-│   │   │   └── (admin)/               # Administrative operations panel
-│   │   ├── components/                # Shared layout & UI components
-│   │   └── lib/                       # API clients & contexts (Auth, Notification)
-│   ├── next.config.ts                 # Dev proxy routing & Turbopack configurations
-│   └── tsconfig.json                  # TypeScript config with '@/*' alias paths
-└── tests/                             # Integration & Unit test cases
-```
+### Ledger & Accounting
+- **Double-Entry Bookkeeping**: Every transfer intrinsically links a debit and credit ledger entry to prevent fund creation/destruction.
+- **Immutable Records**: Ledger transactions are completely un-editable and non-deletable at the database schema level.
+- **Idempotency**: Prevents duplicate transactions via unique idempotency keys.
+
+### System & Administration
+- **Admin Dashboard**: Real-time system health metrics, hardware utilization, and audit logs.
+- **User Management**: Deep inspection, account suspension, and role modification.
+- **Account Control**: Account freezing, limit management, and system-level deposits.
 
 ---
 
-## 🔒 Security & Auth Architecture
+## 🛠️ Technology Stack
 
-1. **Dual-Token Sessions**: Short-lived, HTTP-only JWT cookies coupled with 7-day refresh tokens stored securely as SHA-256 hashes in MongoDB.
-2. **Four-Tier Verification Clearance**:
-   - **Phase 1: Password**: Secure credential checking.
-   - **Phase 2: Email OTP**: Login, registration, and critical security tasks require a 6-digit random code sent to the user's email (secured using SHA-256 validation).
-   - **Phase 3: Transaction PIN**: 6-digit numeric PIN hashed using `argon2id` required for all money transfers and beneficiary modifications.
-   - **Phase 4: High-Value OTP**: Transfers exceeding the configurable threshold (default: ₹10,000) trigger secondary OTP verification automatically.
-3. **Lockout Policy**: 5 failed login attempts locks the user profile for 30 minutes. 3 incorrect PIN entries locks the transaction pin for 15 minutes.
-4. **Audit Logs**: Immutable, append-only transaction logs tracking request IP, user-agent, and UUID correlation IDs (`X-Request-ID`).
+| Domain | Technology | Description |
+| :--- | :--- | :--- |
+| **Frontend** | Next.js 15, React 19, Vanilla CSS | App Router, Server Actions, modern glassmorphism UI |
+| **Backend** | Node.js 20, Express v5 | RESTful architecture, modular controller/service design |
+| **Database** | MongoDB (Mongoose v9) | Transactional ACID compliance, Replica Sets |
+| **Security** | Argon2id, SHA-256, Helmet, CORS | Industry-standard cryptography and HTTP protections |
 
 ---
 
-## 🚀 Getting Started
+## 📂 Documentation Structure
+
+We maintain comprehensive documentation for all system domains. Refer to the `development docs/` directory for exhaustive technical details.
+
+* **[Product Requirements Document (PRD)](./development%20docs/PRD.md)** - Business logic, personas, success metrics, and high-level workflows.
+* **[Technical Requirements Document (TRD)](./development%20docs/TRD.md)** - Database schemas, strict technical implementations, security layers, and architectural diagrams.
+* **[API Documentation](./development%20docs/API_DOCUMENTATION.md)** - Full REST API endpoints, payload structures, and expected responses.
+
+---
+
+## 🚦 Getting Started
 
 ### Prerequisites
-- Node.js 20+
-- MongoDB instance (Atlas or local) configured as a **Replica Set** (required for Mongoose ACID transactions).
-- SMTP Credentials (configured in backend `.env` for mail delivery).
+- Node.js `v20+`
+- MongoDB Instance (must support replica sets for ACID transactions)
+- SMTP Server (or fallback to terminal logs for development)
 
-### Backend Setup (Port 3000)
-1. Install dependencies from the root directory:
-   ```bash
-   npm install
-   ```
-2. Create your `.env` file in the root from `.env.example` and fill in secrets, MongoDB connection strings, and mail configuration values.
-3. Boot the backend server in development mode:
-   ```bash
-   npm run dev
-   ```
+### Environment Configuration
+1. Clone the repository
+2. Rename `.env.example` to `.env` in the root folder.
+3. Configure `MONGO_URI`, `JWT_SECRET`, and `SMTP_*` variables.
+4. Rename `frontend/.env.example` to `frontend/.env.local` to configure `API_BASE_URL`.
 
-### Frontend Setup (Port 3001)
-1. Navigate to the client directory and install dependencies:
-   ```bash
-   cd frontend
-   npm install
-   ```
-2. Set up the local environment file:
-   ```bash
-   cp .env.local.example .env.local
-   ```
-3. Boot the client application:
-   ```bash
-   npm run dev
-   ```
-   *Note: Next.js dev server runs on port 3001. A proxy rewrite maps all client `/api/*` and `/health` requests to backend port 3000 to resolve Same-Site cookie blockades.*
+### Installation & Launch
 
----
-
-## 🧪 Testing and Quality Control
-
-### Running Backend Tests
-From the root directory, run Jest tests and check coverage reports:
+**1. Start the Backend API (Port 3000)**
 ```bash
-npm test
+npm install
+npm run dev
 ```
-All utility helpers, converters, and core transaction handlers are fully covered.
 
-### Compiling Frontend Client
-To run a TypeScript typecheck and compile the optimized production-ready bundle:
+**2. Start the Frontend Application (Port 3001)**
 ```bash
 cd frontend
-npx tsc --noEmit
-npm run build
+npm install
+npm run dev
+```
+
+**3. (Optional) Seed Test Data**
+Run the seeding script to populate initial users, bank accounts, and system deposits.
+```bash
+node seed_test_data.js
 ```
 
 ---
 
-## 📄 Specifications
-Full design requirements and API mappings are documented in the [development docs](file:///d:/Projects/bank-ledger/development docs/) directory:
-* **Product Requirements**: See [PRD.md](file:///d:/Projects/bank-ledger/development docs/PRD.md)
-* **Technical Specifications**: See [TRD.md](file:///d:/Projects/bank-ledger/development docs/TRD.md)
-
----
-
-## License
-ISC
+*Bank Ledger is maintained as an enterprise prototype. For production deployment, ensure MongoDB replica sets are active, WAF rules are defined, and SMTP relies on secure TLS connections.*
